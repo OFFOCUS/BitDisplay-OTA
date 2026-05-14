@@ -1,251 +1,119 @@
-# BitDisplay-OTA  
-Firmware Distribution Server for BitDisplay (O1 / G1 / U1)
+# BitDisplay OTA
 
-This repository serves as the official OTA (Over-The-Air) firmware distribution system for all BitDisplay models developed under Houses2521.
+Official public firmware distribution endpoint for BitDisplay devices by Houses2521.
 
-It is designed for:
+This repository is used by supported BitDisplay products to check for firmware availability and download OTA firmware files. It is intentionally small and public-facing: it contains release artifacts and simple version metadata only.
 
-- Safe firmware rollout
-- Targeted device updates
-- Scalable multi-device deployment
-- Long-runtime stability (24/7 operation)
+## Public Scope
 
----
+This repository may contain:
 
-# 📦 Supported Models
+- OTA firmware binaries for supported BitDisplay channels
+- `version.txt` metadata for each channel
+- Public release notes or operational notes when needed
 
-| Model | Product | API Source | OTA Folder |
-|-------|--------|------------|------------|
-| O1 | BTC.$ (USD) | Binance | `/O1/` |
-| U1 | BTC.€ (EUR) | Binance | `/U1/` |
-| G1 | XAU.$ (Gold) | CoinGecko / Binance | `/G1/` |
-| G1_V2 | XAU.$ (Binance Futures) | Binance Futures | `/G1_V2/` |
+This repository should not contain:
 
-Each model folder contains:
+- Source code
+- Secrets, API keys, tokens, or private configuration
+- Customer information
+- Internal manufacturing or provisioning records
 
-- `firmware.bin`
-- `version.txt`
+## OTA Channels
 
----
+Each OTA channel has its own folder. A folder normally contains:
 
-# 📁 Repository Structure
-
-```
-BitDisplay-OTA/
-│
-├── O1/
-│   ├── firmware.bin
-│   └── version.txt
-│
-├── U1/
-│   ├── firmware.bin
-│   └── version.txt
-│
-├── G1/
-│   ├── firmware.bin
-│   └── version.txt
-│
-└── G1_V2/
-    ├── firmware.bin
-    └── version.txt
+```text
+firmware.bin
+version.txt
 ```
 
----
+Current public channel folders:
 
-# 🔄 OTA Update Flow (Device Side Logic)
+| Channel | Product / Firmware line | Folder |
+| --- | --- | --- |
+| O1 | BitDisplay O1, BTC/USD display | `O1/` |
+| U1 | BitDisplay U1, BTC/EUR display | `U1/` |
+| G1 | BitDisplay G1 legacy gold display | `G1/` |
+| G1_V2 | BitDisplay G1 current gold display | `G1_V2/` |
+| TG | BitDisplay Thai gold display | `TG/` |
+| BTCTHB | BitDisplay O2, BTC/THB display | `BTCTHB/` |
+| XAUTTHB | BitDisplay G2, gold/THB display | `XAUTTHB/` |
+| USDCTHB | BitDisplay CT, USD/THB display | `USDCTHB/` |
 
-Each BitDisplay device performs:
+## Device Update Flow
 
-1. Request `version.txt`
-2. Compare remote version with local `FW_VERSION`
-3. Validate DEVICE_ID against target list
-4. Download `firmware.bin`
-5. Flash firmware
-6. Restart device
+A supported BitDisplay device periodically checks its assigned channel:
 
-OTA will only execute if:
+1. Read `version.txt` from the channel folder.
+2. Compare the remote firmware version with the version currently running on the device.
+3. Confirm that the rollout scope allows the device to update.
+4. Download `firmware.bin` from the same channel.
+5. Apply the update and restart.
 
-- WiFi is connected
-- Device is in stable RUN_CONNECTED state
-- Remote version is higher than local version
-- DEVICE_ID is allowed in target list
+Devices are expected to update only when network and runtime conditions are safe enough for OTA. If a check fails, the device continues running the current firmware and retries later.
 
----
+## `version.txt` Format
 
-# 📄 version.txt Format
+`version.txt` uses one line:
 
-### Update ALL devices
+```text
+<version>|<rollout_scope>
 ```
-5
-```
-or
-```
+
+Examples:
+
+```text
+5|NONE
 5|ALL
 ```
 
-### Update specific devices only
-```
-5|88,90,102
-```
+Rollout scope values:
 
-### Block update
-```
-5|NONE
-```
+| Value | Meaning |
+| --- | --- |
+| `NONE` | No public rollout is active for this version. |
+| `ALL` | Release is available to all eligible devices on that channel. |
+| Internal rollout value | Used by Houses2521 for controlled staged rollout. |
 
-Format rule:
+A plain integer version may also be supported by older firmware, but the preferred public format is `version|scope`.
 
-```
-<version>|<target list>
-```
+## Public URL Pattern
 
-Target list options:
-- `ALL`
-- `NONE`
-- Comma-separated DEVICE_ID values
+Example for the O1 channel:
 
----
-
-# 🛠 How To Release New Firmware
-
-### Step 1 — Compile firmware
-Export `.bin` from Arduino IDE or VSCode.
-
-### Step 2 — Upload firmware
-Replace:
-
-```
-/ModelName/firmware.bin
-```
-
-Example:
-```
-/O1/firmware.bin
-```
-
-### Step 3 — Update version.txt
-Increase version number:
-
-Example:
-```
-6|ALL
-```
-
-### Step 4 — Commit to main branch
-
-Devices will update automatically within their OTA check interval.
-
----
-
-# 🧠 Device Identity System
-
-Each device contains:
-
-```
-uint16_t deviceId
-```
-
-- Stored in NVS (Preferences)
-- Provisioned once via USB
-- OTA updates DO NOT overwrite deviceId
-
-Provision example in firmware:
-
-```
-#define PROVISION_DEVICE_ID  88
-```
-
-After first flash, identity persists permanently.
-
----
-
-# 🌐 OTA Source URL Pattern
-
-Example (O1):
-
-```
+```text
 https://raw.githubusercontent.com/OFFOCUS/BitDisplay-OTA/main/O1/version.txt
 https://raw.githubusercontent.com/OFFOCUS/BitDisplay-OTA/main/O1/firmware.bin
 ```
 
-All models follow the same pattern.
+Other channels follow the same pattern using their folder name.
 
----
+## Release Safety Notes
 
-# 🔒 Production Rollout Strategy
+For maintainers, each firmware release should follow a conservative process:
 
-Recommended staged deployment:
+1. Build the firmware for the exact BitDisplay model and hardware configuration.
+2. Test the binary on matching hardware before publishing.
+3. Upload the matching `firmware.bin` to the correct channel folder.
+4. Increase the firmware version in `version.txt` only after the binary is ready.
+5. Use `NONE` or a controlled rollout first when validating a new release.
+6. Move to `ALL` only after the release is stable.
 
-### Phase 1 — Test devices
-```
-7|12,15,18
-```
+Never publish a binary to the wrong channel. A firmware file must match the board, display wiring, partition layout, libraries, and product behavior expected by that channel.
 
-### Phase 2 — Observe stability
+## Reliability Principles
 
-### Phase 3 — Release to all
-```
-7|ALL
-```
+BitDisplay OTA is designed around practical field reliability:
 
-This prevents mass device failure in case of unexpected bugs.
+- Small, predictable public files
+- Separate channel per product line
+- Staged rollout support
+- Graceful retry behavior on device side
+- No secrets or private operational data in the public repository
 
----
-
-# ⚙ OTA Safety Features (Implemented in Firmware)
-
-- DEVICE_ID stored in NVS
-- Deterministic stagger (avoid server spike)
-- Boot-time OTA check
-- Periodic OTA check
-- WiFi stability guard
-- OTA failure backoff
-- Watchdog-safe download loop
-- Targeted device control
-
----
-
-# ⚡ System Design Philosophy
-
-BitDisplay OTA infrastructure is built for:
-
-- 24/7 always-on displays
-- Low-power IoT devices
-- Internet instability tolerance
-- Mass commercial deployment
-- Safe remote firmware management
-
----
-
-# 📌 Important Notes
-
-- Devices must remain online to receive OTA
-- Always increment `FW_VERSION` before publishing new firmware
-- Ensure firmware.bin matches correct model folder
-- Never modify deviceId via OTA
-- Use staged rollout for production stability
-
----
-
-# 🏷 Maintainer
+## Maintainer
 
 Houses2521  
-Embedded Systems & IoT Display Development  
-ESP32 + HUB75 + OTA Infrastructure  
-
----
-
-# 🎯 Commercial Impact
-
-This OTA system enables:
-
-- Zero-touch firmware updates
-- Remote bug fixes
-- Feature expansion without hardware recall
-- Scalable multi-country deployment
-- Controlled staged firmware release
-
----
-
-BitDisplay OTA is not just a firmware host —  
-it is a controlled deployment infrastructure for production IoT devices.
+BitDisplay product line  
+ESP32 IoT display firmware and OTA distribution
