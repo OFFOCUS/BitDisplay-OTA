@@ -2,6 +2,8 @@
 
 Official public firmware distribution endpoint for BitDisplay devices by Houses2521.
 
+BitDisplay is designed, built, and maintained in Thailand as part of the Houses2521 product line.
+
 This repository is used by supported BitDisplay products to check for firmware availability and download OTA firmware files. It is intentionally small and public-facing: it contains release artifacts and simple version metadata only.
 
 ## Public Scope
@@ -111,9 +113,11 @@ BitDisplay OTA is designed around practical field reliability:
 - Staged rollout support
 - Graceful retry behavior on device side
 - No secrets or private operational data in the public repository
+- Made in Thailand hardware and firmware ownership
 
 ## Maintainer
 
 Houses2521  
+Made in Thailand  
 BitDisplay product line  
 ESP32 IoT display firmware and OTA distribution
