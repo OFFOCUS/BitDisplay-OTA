@@ -39,6 +39,7 @@ Current public channel folders:
 | G1 | BitDisplay G1 legacy gold display | `G1/` |
 | G1_V2 | BitDisplay G1 current gold display | `G1_V2/` |
 | TG | BitDisplay Thai gold display | `TG/` |
+| TG2 | BitDisplay Thai gold buy/sell display | `TG2/` |
 | BTCTHB | BitDisplay O2, BTC/THB display | `BTCTHB/` |
 | XAUTTHB | BitDisplay G2, gold/THB display | `XAUTTHB/` |
 | USDCTHB | BitDisplay CT, USD/THB display | `USDCTHB/` |
