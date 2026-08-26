@@ -27,26 +27,35 @@ If an update check or download cannot be completed, the device continues running
 
 ## Public OTA Channels
 
-Each active product channel has its own folder containing:
+Each active product channel has its own folder containing `version.txt`.
+`firmware.bin` is present only when an artifact has been deliberately
+published for that channel:
 
 ```text
-firmware.bin
 version.txt
+firmware.bin  # optional until a release artifact is published
 ```
 
-| BitDisplay model | Display / firmware line | OTA folder |
-| --- | --- | --- |
-| O1 | BTC/USD display | `O1/` |
-| U1 | BTC/EUR display | `U1/` |
-| G1 | Gold price display | `G1_V2/` |
-| TG | Thai gold display | `TG/` |
-| TG2 | Thai gold buy/sell display | `TG2/` |
-| TG3 | Compact Thai gold buy/sell display | `TG3/` |
-| TG4 | Thai gold buy/sell display | `TG4/` |
-| T1 | Time display | `T1/` |
-| O2 | BTC/THB display | `BTCTHB/` |
-| G2 | Gold/THB display | `XAUTTHB/` |
-| CT | USD/THB display | `USDCTHB/` |
+Current public state, verified 2026-08-26:
+
+| BitDisplay model | Display / firmware line | OTA folder | Metadata | Binary |
+| --- | --- | --- | --- | --- |
+| O1 | BTC/USDT display | `O1/` | `2\|NONE` | published FW2 |
+| U1 | BTC/EUR display | `U1/` | `3\|NONE` | published |
+| G1 | XAU/USDT display | `G1_V2/` | `7\|NONE` | published |
+| TG | Thai gold display | `TG/` | `15\|NONE` | published |
+| TG2 | Thai gold buy/sell display | `TG2/` | `2\|NONE` | published |
+| TG3 | Compact Thai gold buy/sell display | `TG3/` | `1\|NONE` | **not published** |
+| TG4 | Thai gold buy/sell display | `TG4/` | `5\|NONE` | published |
+| T1 | Time display | `T1/` | `3\|NONE` | published |
+| O2 | BTC/THB display | `BTCTHB/` | `6\|NONE` | published |
+| G2 | XAU/THB display | `XAUTTHB/` | `3\|NONE` | published |
+| CT | USDC/THB display | `USDCTHB/` | `6\|NONE` | published |
+
+All listed channels are closed at `NONE`; no OTA rollout was active at the
+verification time. TG3 is currently metadata-only: a
+device can read its version metadata, but no TG3 application image is currently
+available at the documented binary URL.
 
 Some additional folders may be retained for compatibility with earlier deployed devices or for controlled testing. They are not public product-release channels.
 
@@ -67,10 +76,14 @@ Examples:
 
 | Scope | Meaning |
 | --- | --- |
-| `NONE` | No rollout is currently active. |
+| `NONE` | No rollout is currently active, even if a binary remains published. |
 | `ALL` | The release is available to compatible devices in that channel. |
 
 Earlier firmware versions may also accept a plain integer version. Publication and any controlled rollout scope are managed by Houses2521.
+
+The firmware source version and the published OTA version are separate release
+states. For example, O1 source may advance while its OTA channel intentionally
+retains an earlier accepted binary. Do not infer one from the other.
 
 ## Public URL Pattern
 
